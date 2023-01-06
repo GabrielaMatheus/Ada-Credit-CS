@@ -1,0 +1,148 @@
+Sugestões gerais:
+  -> Trocar o tipo de long para string no documento do Client.
+
+
+Entities
+  Client
+    string ToString()
+    Client Constructor()
+    Client Constructor(string name, long document)
+    Client Constructor(string , long , Account)
+    void changeName
+
+  Employee
+    string ToString()
+    Employee Constructor()
+    Employee Constructor(string, string, string, string)
+    void changePassword(string)
+    void changeLastLogin()
+
+Controller
+  EmployeeController
+    void AddNewEmployee() -> Add()
+    void UpdateEmployee() -> Update()
+    void DeactivateEmployee() -> Deactivate()
+
+    void GetEmployeeActivate() -> ShowAllActivated -->> Não deveria estar aqui
+
+  ClientController
+    void AddNewClient() -> Add()
+    void ConsultClient() -> FetchByDocument()
+    void UpdateClient() -> Update()
+    void DeactivateClient() -> Deactivate()
+
+    void StatusDeactivated() -> ShowDeactivate -->> Não deveria estar aqui
+
+  Sugestão:
+  ReportController
+    void ShowAllClientsActivatedAndAmount()
+    void ShowAllClientsDesactivated()
+    void ShowAllEmployeesActivatedAndLastLogin()
+    void ShowTransactionsWithError()
+
+services
+  ClientService
+    Client getClientByDocument(long) -> FetchByDocument()
+    bool addClient(Client) -> Add()
+    bool updateClient(string, long, bool) -> Update()
+    bool deactivateClient(long) -> Deactivate()
+
+    Client statusDeactivated() -> Não deveria estar aqui.
+      Deveria ter um service somente para exibição dos relatórios
+
+  EmployeeService
+    Employee getClientByDocument(string ) -> FetchByDocument()
+    bool addEMployee(Employee ) -> Add()
+    bool updateEMployee(string, Employee ) -> Update()
+    bool deactivateEMployee(string) -> Deactivate()
+
+    Employee employeeActivate() -> Método chamado pelo GetEmployeeActivate, do qual não deveria estar dentro de um service do Employee, dado que é de relatório.
+
+  Sugestão:
+  ReportService
+    void ShowAllClientsActivatedAndAmount() chama{
+      List<Client> GetAllClientsAndAmount()
+    }
+
+    void ShowAllClientsDesactivated() chama{
+      List<Client> GetAllClientsDesactivades()
+    }
+
+    void ShowAllEmployeesActivatedAndLastLogin() chama{
+      List<Employee> GetAllEmployeesActivated() 
+    }
+
+    void ShowTransactionsWithError() chama{
+      List<Transaction> GetAllTransactionsWithError()
+    }
+
+  OBS: Ao meu ver não é necessário existir um repository para o Report, dado que ele vai consumir apenas do repository de Client/Employee e Transaction.
+
+repositories
+  EmployeeRepository
+    void Save()
+    bool Add(Employee employee)
+    bool ChangePassword(string, Employee )
+    void UpdateLastLogin(string )
+    Employee GetByUsername(string ) -> FetchByUsername()
+    Employee GetByDocument(string ) -> FetchByDocument()
+    bool VerifyLogin(string, string )
+    bool verifyFirstLogin() -> FirstLogin()
+    bool Deactivate(string)
+
+    Employee ActivateAndLastLogin() -> Somente quem chama que não deveria ser o EmployeeController.GetEmployeeActivate e sim o ReportController.ShowAllEmployeesActivatedAndLastLogin(), por exemplo.
+
+  ClientRepository
+    void Save()
+    Client GetByDocument(long document) -> FetchByDocument()
+    Client StatusActiveAndBalance()
+    bool Add(Client )
+    bool UpdateClientName(string , long , bool )
+    bool Deactivate(long )
+    
+    Client StatusDeactivated() -> Somente quem chama que não deveria ser o ClientController.StatusDeactivated e sim o ReportController.ShowAllClientsDesactivated(), por exemplo.
+
+
+  Transaction
+    Entrada e Saída
+      In / Out
+
+    Padrão de nomenclatura: nome-do-banco-parceiro-aaaammdd.csv
+
+    Processar transações
+      Ficam na pasta Desktop/Transactions
+
+    Salvar as transactions que falharam no processamento
+      - Insuficiência de saldo
+      - Número da conta inválido ou inexistente.
+      - transação incompatível(TEF's)
+      - Padrão de nomenclatura DE FALHA: nome-do-banco-parceiro-aaaammdd-failed.csv que deverá entrar na pasta Desktop/Transactions/Failed
+
+    Caso a transação tenha sido bem sucedida, mover para a pasta Desktop/Transactions/Completed
+    - Padrão de nomenclatura DE SUCESSO: nome-do-banco-parceiro-aaaammdd-completed.csv
+
+    Atualizar o saldo do cliente conforme o processamento da Transaction
+
+    Layout da Transaction:
+      ANEXO A - Layoute do Arquivo de Transações
+        Cada linha no arquivo de transações é composta pelas seguintes informações
+        AAA,BBBB,CCCCCC,DDD,EEEE,FFFFFF,GGG,H,I
+
+        Sendo que:
+        AAA Número com 3 dígitos representando o Código do Banco de Origem
+        BBBB Número com 4 dígitos representando a Agência do Banco de Origem
+        CCCCCC Número com 6 dígitos representando o número da conta do Banco de Origem
+
+        DDD Número com 3 dígitos representando o Código do Banco de Destino
+        EEEE Número com 4 dígitos representando a Agência do Banco de Destino
+        FFFFFF Número com 6 dígitos representando o número da conta do Banco de Destino
+
+        GGG Tipo da Transação (DOC, TED, TEF).
+
+        H Número representando o sentido da transação (0 - Débito/Saída, 1 - Crédito/Entrada)
+
+        I número real com duas casas decimais, separadas por um . e sem separador de milhar
+
+        Obs: TEFs só podem ser realizadas entre clientes do mesmo banco.
+
+    
